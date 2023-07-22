@@ -22,16 +22,16 @@ from matplotlib.markers import MarkerStyle
 import sys
 
 # Grid of x, y points
-nx, ny = 50, 50
-minX, maxX = -4, 3
-minY, maxY = -4, 3
+nx, ny = 100, 100
+minX, maxX = -3, 3
+minY, maxY = -3, 3
 
 def eqnXDotYDot(x, y): 
     """
     Modify equations here
     """
-    dx = x+np.exp(-y)
-    dy = -y 
+    dx = 1+y-np.exp(-x)
+    dy = x**3-y 
     return  ( dx, dy )
 
 def func(variables):
@@ -142,7 +142,7 @@ ax.contour(X,Y,dx,levels=[0], linewidths=1, colors='r')
 ax.contour(X,Y,dy,levels=[0], linewidths=1, colors='y')
 
 fPt = fixedPoints(X, Y)
-#%%
+
 for i in range(len(fPt)):
     typeStability = sFPt(fPt[i])
     if typeStability == "stable":
