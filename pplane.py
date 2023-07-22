@@ -30,12 +30,16 @@ minY, maxY = -2, 2
 # Plot nullclines or not?
 plotNullclines = False
 
+# Plot multiples of pi in x and y axes?
+mulPiXAxis = False
+mulPiYAxis = False
+
 def eqnXDotYDot(x, y): 
     """
     Modify equations here
     """
-    dx = x*y-x**2*y+y**3
-    dy = y**2+x**3-x*y**2
+    dx = x*y-1
+    dy = x-y**3
     return  ( dx, dy )
 
 def func(variables):
@@ -48,9 +52,9 @@ def fixedPoints(X, Y):
     for i in range(nx):
         for j in range(ny):
             xFixedPoint, yFixedPoint = fsolve(func,(X[i,j],Y[i,j]))
-            xFixedPoint = round(xFixedPoint,3)
-            yFixedPoint = round(yFixedPoint,3)
             if all(np.isclose(eqnXDotYDot(xFixedPoint, yFixedPoint), [0.0, 0.0])) == True:
+               xFixedPoint = round(xFixedPoint,3)
+               yFixedPoint = round(yFixedPoint,3)
                fPt += ((xFixedPoint, yFixedPoint),)
     fPt = tuple( set(fPt) )
     return fPt
@@ -78,10 +82,10 @@ def sFPt(fPt):
     tau = w[0] + w[1]
     Delta = w[0] * w[1]
     if abs(tau)<tolerance and Delta>0:
-       print("({:.3f},{:.3f}): center, linearization failed.".format(fPtX,fPtY)) 
+       print("({:.3f},{:.3f}): center, linearization could fail.".format(fPtX,fPtY)) 
        typeStability = "BC" # borderline case       
     elif abs(Delta)<tolerance:
-       print("({:.3f},{:.3f}): line of fixed points, linearization failed.".format(fPtX,fPtY))  
+       print("({:.3f},{:.3f}): line of fixed points, linearization coudl fail.".format(fPtX,fPtY))  
        typeStability = "BC" # borderline case        
     elif tau>0 and Delta>0 and (tau**2-4*Delta)<tolerance:
        if w[0]!=w[1]:
@@ -117,6 +121,37 @@ def sFPt(fPt):
         typeStability = "None"
         sys.exit()
     return typeStability
+
+# function to plot multiples of pi in x axis
+# source:
+# https://stackoverflow.com/questions/40642061/how-to-set-axis-ticks-in-multiples-of-pi-python-matplotlib
+def multiple_formatter(denominator=2, number=np.pi, latex='\pi'):
+    def gcd(a, b):
+        while b:
+            a, b = b, a%b
+        return a
+    def _multiple_formatter(x, pos):
+        den = denominator
+        num = np.int(np.rint(den*x/number))
+        com = gcd(num,den)
+        (num,den) = (int(num/com),int(den/com))
+        if den==1:
+            if num==0:
+                return r'$0$'
+            if num==1:
+                return r'$%s$'%latex
+            elif num==-1:
+                return r'$-%s$'%latex
+            else:
+                return r'$%s%s$'%(num,latex)
+        else:
+            if num==1:
+                return r'$\frac{%s}{%s}$'%(latex,den)
+            elif num==-1:
+                return r'$\frac{-%s}{%s}$'%(latex,den)
+            else:
+                return r'$\frac{%s%s}{%s}$'%(num,latex,den)
+    return _multiple_formatter
     
 x = np.linspace(minX, maxX, nx)
 y = np.linspace(minY, maxY, ny)
@@ -130,7 +165,7 @@ plt.title("Phase Portrait")
 ax = plt.gca()
 #fig, ax = plt.subplots()
 plt.minorticks_on()
-minorLocatorX = AutoMinorLocator(2) # number of minor intervals per major # inteval
+minorLocatorX = AutoMinorLocator(3) # number of minor intervals per major # inteval
 minorLocatorY = AutoMinorLocator(2)
 ax.xaxis.set_minor_locator(minorLocatorX) # add minor ticks on x axis
 ax.yaxis.set_minor_locator(minorLocatorY) # add minor ticks on y axis
@@ -172,6 +207,17 @@ q = ax.quiver(X, Y, dx, dy,color='g',angles = 'uv', headlength=2,headaxislength=
 
 ax.set_xlabel('$x$')
 ax.set_ylabel('$y$')
+
+if mulPiXAxis == True:
+   ax.xaxis.set_major_locator(plt.MultipleLocator(3/2*np.pi))
+   ax.xaxis.set_minor_locator(plt.MultipleLocator(1/2*np.pi))
+   ax.xaxis.set_major_formatter(plt.FuncFormatter(multiple_formatter()))
+
+if mulPiYAxis == True:
+   ax.yaxis.set_major_locator(plt.MultipleLocator(2*np.pi))
+   ax.yaxis.set_minor_locator(plt.MultipleLocator(np.pi))
+   ax.yaxis.set_major_formatter(plt.FuncFormatter(multiple_formatter()))
+
 ax.set_xlim(1.05*minX, 1.05*maxX)
 ax.set_ylim(1.05*minY, 1.05*maxY)
 ax.set_aspect('equal')
