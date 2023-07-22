@@ -2,7 +2,8 @@
 """
 Created on Mon Jul 19 2023
 
-@author: Wei-shan
+@author: Wei Shan Lee
+weishan_lee@yahoo.com
 
 python codes mimicking pplane to plot phase portrait for solving Strogatz's problems.
 
@@ -23,15 +24,18 @@ import sys
 
 # Grid of x, y points
 nx, ny = 100, 100
-minX, maxX = -3, 3
-minY, maxY = -3, 3
+minX, maxX = -2, 2
+minY, maxY = -2, 2
+
+# Plot nullclines or not?
+plotNullclines = False
 
 def eqnXDotYDot(x, y): 
     """
     Modify equations here
     """
-    dx = 1+y-np.exp(-x)
-    dy = x**3-y 
+    dx = x*y-x**2*y+y**3
+    dy = y**2+x**3-x*y**2
     return  ( dx, dy )
 
 def func(variables):
@@ -137,9 +141,10 @@ lw = speed  / speed.max()
 
 ax.streamplot(x, y, dx, dy, linewidth=lw, density=2,color='b', arrowstyle='-')#,
               #broken_streamlines=False) # valid for matplolib version  > 3.6.0
-             
-ax.contour(X,Y,dx,levels=[0], linewidths=1, colors='r')
-ax.contour(X,Y,dy,levels=[0], linewidths=1, colors='y')
+
+if plotNullclines == True:
+   ax.contour(X,Y,dx,levels=[0], linewidths=1, colors='r')
+   ax.contour(X,Y,dy,levels=[0], linewidths=1, colors='y')
 
 fPt = fixedPoints(X, Y)
 
