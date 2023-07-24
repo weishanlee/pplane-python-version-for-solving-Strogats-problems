@@ -24,11 +24,14 @@ import sys
 
 # Grid of x, y points
 nx, ny = 100, 100
-minX, maxX = -2, 2
-minY, maxY = -2, 2
+minX, maxX = -3, 3
+minY, maxY = -3, 3
 
 # Plot nullclines or not?
 plotNullclines = False
+
+# Find fixed Points?
+findFixedPoints = False
 
 # Plot multiples of pi in x and y axes?
 mulPiXAxis = False
@@ -37,9 +40,13 @@ mulPiYAxis = False
 def eqnXDotYDot(x, y): 
     """
     Modify equations here
+    For polar systems (rDot,thetaDot), convert it to (xDot, yDot) by
+    xDot = rDot * x / sqrt(x**2+y**2) - thetaDot * y 
+    yDot = rDot * y / sqrt(x**2+y**2) - thetaDot * x
     """
-    dx = x*y-1
-    dy = x-y**3
+    r = np.sqrt(x**2+y**2)
+    dx = (r**3-4*r) * x / r - 1 * y 
+    dy = (r**3-4*r) * y / r - 1 * x
     return  ( dx, dy )
 
 def func(variables):
@@ -117,7 +124,7 @@ def sFPt(fPt):
         print("({:.3f},{:.3f}): saddle".format(fPtX,fPtY))
         typeStability = "saddle"
     else:
-        print("({:.3f},{:.3f}): other cases. Check line 112".format(fPtX,fPtY))
+        print("({:.3f},{:.3f}): other cases. Check line 120".format(fPtX,fPtY))
         typeStability = "None"
         sys.exit()
     return typeStability
@@ -172,38 +179,39 @@ ax.yaxis.set_minor_locator(minorLocatorY) # add minor ticks on y axis
 
 speed = 5*np.sqrt(dx**2 + dy**2) # the coefficient may need to modify for 
                                  # different cases
-lw = speed  / speed.max()
+lw = 10* speed  / speed.max()
 
-ax.streamplot(x, y, dx, dy, linewidth=lw, density=2,color='b', arrowstyle='-')#,
+ax.streamplot(x, y, dx, dy, linewidth=lw, density=3,color='b', arrowstyle='->')#,
               #broken_streamlines=False) # valid for matplolib version  > 3.6.0
 
 if plotNullclines == True:
    ax.contour(X,Y,dx,levels=[0], linewidths=1, colors='r')
    ax.contour(X,Y,dy,levels=[0], linewidths=1, colors='y')
 
-fPt = fixedPoints(X, Y)
+if findFixedPoints == True:
+    fPt = fixedPoints(X, Y)
 
-for i in range(len(fPt)):
-    typeStability = sFPt(fPt[i])
-    if typeStability == "stable":
-        ax.scatter(fPt[i][0],fPt[i][1],s = 80, facecolors='k',edgecolors='k')
-    elif typeStability == "unstable":
-        ax.scatter(fPt[i][0],fPt[i][1],s = 80, facecolors='none',edgecolors='k')
-    elif typeStability == "saddle":    
-        ax.scatter(fPt[i][0],fPt[i][1],s = 80, marker=MarkerStyle("o", fillstyle="right"),facecolors='k',edgecolors='k')
-        ax.scatter(fPt[i][0],fPt[i][1],s = 80, marker=MarkerStyle("o", fillstyle="left"),facecolors='none',edgecolors='k')
-    elif typeStability == "BC":
-        ax.scatter(fPt[i][0],fPt[i][1],s = 80, marker=r'$?$',facecolors='none',edgecolors='k')
-    else:
-        print("({:.3f},{:.3f}): other cases. Check line 158".format(fPt[i][0],fPt[i][1]))
+    for i in range(len(fPt)):
+        typeStability = sFPt(fPt[i])
+        if typeStability == "stable":
+            ax.scatter(fPt[i][0],fPt[i][1],s = 80, facecolors='k',edgecolors='k')
+        elif typeStability == "unstable":
+            ax.scatter(fPt[i][0],fPt[i][1],s = 80, facecolors='none',edgecolors='k')
+        elif typeStability == "saddle":    
+            ax.scatter(fPt[i][0],fPt[i][1],s = 80, marker=MarkerStyle("o", fillstyle="right"),facecolors='k',edgecolors='k')
+            ax.scatter(fPt[i][0],fPt[i][1],s = 80, marker=MarkerStyle("o", fillstyle="left"),facecolors='none',edgecolors='k')
+        elif typeStability == "BC":
+            ax.scatter(fPt[i][0],fPt[i][1],s = 80, marker=r'$?$',facecolors='none',edgecolors='k')
+        else:
+            print("({:.3f},{:.3f}): other cases. Check line 198".format(fPt[i][0],fPt[i][1]))
 
 # Grid for placing quivers
-nx, ny = 10, 10
+nx, ny = 50, 50
 x = np.linspace(minX, maxX, nx)
 y = np.linspace(minY, maxY, ny)
 X, Y = np.meshgrid(x, y)  
 dx, dy = eqnXDotYDot(X,Y) 
-q = ax.quiver(X, Y, dx, dy,color='g',angles = 'uv', headlength=2,headaxislength=2)
+q = ax.quiver(X, Y, dx, dy,color='g',headlength=2,headaxislength=1.5)
 
 ax.set_xlabel('$x$')
 ax.set_ylabel('$y$')
